@@ -95,6 +95,7 @@ export type EditableProps = {
   renderElement?: (props: RenderElementProps) => JSX.Element
   renderLeaf?: (props: RenderLeafProps) => JSX.Element
   as?: React.ElementType
+  container?: Document | ShadowRoot
 } & React.TextareaHTMLAttributes<HTMLDivElement>
 
 /**
@@ -112,6 +113,7 @@ export const Editable = (props: EditableProps) => {
     renderLeaf,
     style = {},
     as: Component = 'div',
+    container = window.document,
     ...attributes
   } = props
   const editor = useSlate()
@@ -394,7 +396,7 @@ export const Editable = (props: EditableProps) => {
   const onDOMSelectionChange = useCallback(
     throttle(() => {
       if (!readOnly && !state.isComposing && !state.isUpdatingSelection) {
-        const { activeElement } = window.document
+        const { activeElement } = container
         const el = ReactEditor.toDOMNode(editor, editor)
         const domSelection = window.getSelection()
 
@@ -436,13 +438,10 @@ export const Editable = (props: EditableProps) => {
   // fire for any change to the selection inside the editor. (2019/11/04)
   // https://github.com/facebook/react/issues/5785
   useIsomorphicLayoutEffect(() => {
-    window.document.addEventListener('selectionchange', onDOMSelectionChange)
+    container.addEventListener('selectionchange', onDOMSelectionChange)
 
     return () => {
-      window.document.removeEventListener(
-        'selectionchange',
-        onDOMSelectionChange
-      )
+      container.removeEventListener('selectionchange', onDOMSelectionChange)
     }
   }, [onDOMSelectionChange])
 
@@ -531,7 +530,7 @@ export const Editable = (props: EditableProps) => {
             // one, this is due to the window being blurred when the tab
             // itself becomes unfocused, so we want to abort early to allow to
             // editor to stay focused when the tab becomes focused again.
-            if (state.latestElement === window.document.activeElement) {
+            if (state.latestElement === container.activeElement) {
               return
             }
 
@@ -735,7 +734,7 @@ export const Editable = (props: EditableProps) => {
               !isEventHandled(event, attributes.onFocus)
             ) {
               const el = ReactEditor.toDOMNode(editor, editor)
-              state.latestElement = window.document.activeElement
+              state.latestElement = container.activeElement
 
               // COMPAT: If the editor has nested editable elements, the focus
               // can go to them. In Firefox, this must be prevented because it

@@ -101,11 +101,14 @@ export const ReactEditor = {
    * Blur the editor.
    */
 
-  blur(editor: ReactEditor): void {
+  blur(
+    container: Document | ShadowRoot = window.document,
+    editor: ReactEditor
+  ): void {
     const el = ReactEditor.toDOMNode(editor, editor)
     IS_FOCUSED.set(editor, false)
 
-    if (window.document.activeElement === el) {
+    if (container.activeElement === el) {
       el.blur()
     }
   },
@@ -114,11 +117,14 @@ export const ReactEditor = {
    * Focus the editor.
    */
 
-  focus(editor: ReactEditor): void {
+  focus(
+    container: Document | ShadowRoot = window.document,
+    editor: ReactEditor
+  ): void {
     const el = ReactEditor.toDOMNode(editor, editor)
     IS_FOCUSED.set(editor, true)
 
-    if (window.document.activeElement !== el) {
+    if (container.activeElement !== el) {
       el.focus({ preventScroll: true })
     }
   },
